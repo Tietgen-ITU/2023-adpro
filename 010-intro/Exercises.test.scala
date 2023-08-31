@@ -21,16 +21,17 @@ def fasterThan[A](d: Duration) (b: => A): Boolean =
   import ExecutionContext.Implicits.global
   Try { Await.result(Future(b), d) }.isSuccess
 
-object ExercisesSpec 
+// Exercise 1
+object Exercise01Spec
   extends org.scalacheck.Properties("intro"):
-
-  // Exercise 1
 
   property("Ex01.00: square behaves like n * n") = 
     forAll { (n: Int) => MyModule.square(n) == n * n }
- 
-  // Exercise 3
 
+// Exercise 3
+object Exercise03Spec
+  extends org.scalacheck.Properties("intro"):
+ 
   property("Ex03.01: F1 Fibonacci number is 0") = fib(1) == 0
   property("Ex03.02: F2 Fibonacci number is 1") = fib(2) == 1
   property("Ex03.03: F3 Fibonacci number is 1") = fib(3) == 1
@@ -43,12 +44,22 @@ object ExercisesSpec
     forAll(Gen.choose(3, 30)) { (n: Int) =>
       fib(n) == fib(n - 1) + fib(n - 2) }
 
-  // Exercise 4
-  
-  val comp: (Int, Int) => Boolean     = _ <= _
-  val invComp: (Int, Int) => Boolean  = _ >= _
-  val always: (Int, Int) => Boolean = (_, _) => true 
-  val never: (Int, Int) => Boolean = (_, _) => false
+
+// Shared
+val comp: (Int, Int) => Boolean     = _ <= _
+val invComp: (Int, Int) => Boolean  = _ >= _
+val always: (Int, Int) => Boolean = (_, _) => true 
+val never: (Int, Int) => Boolean = (_, _) => false
+
+val intArray: Gen[Array[Int]] = 
+  Gen.containerOf[Array,Int](Gen.choose(0, 2000))
+
+val nonTrivialIntArray: Gen[Array[Int]] = 
+  intArray filter { ints => ints.size > 1 }
+
+// Exercise 4
+object Exercise04Spec
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex04.00: Array(1 to 6)") = 
     isSorted(Array(1 to 6*), comp)
@@ -58,12 +69,6 @@ object ExercisesSpec
 
   property("Ex04.02: Array(1,2,3,4,5,1)") =
     !isSorted (Array(1, 2, 3, 4, 5, 1), comp)
-
-  val intArray: Gen[Array[Int]] = 
-    Gen.containerOf[Array,Int](Gen.choose(0, 2000))
-
-  val nonTrivialIntArray: Gen[Array[Int]] = 
-    intArray filter { ints => ints.size > 1 }
 
   property("Ex04.03: An array after standard sorting is sorted") =
     forAll(intArray) { ints => isSorted[Int](ints.sorted, comp) }
@@ -104,7 +109,9 @@ object ExercisesSpec
     // but this waits for the property to complete before failing which 
     // is not practical for us. Our fasterThan kills after 50.millis
     
-  // Exercise 5
+// Exercise 5
+object Exercise05Spec
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex05.00: Currying doesn't change value of isSorted [sorted]") =
     forAll(intArray) { ints =>
@@ -126,6 +133,8 @@ object ExercisesSpec
         isSorted(ints, order) == isSortedCurried(ints) (order) } }
 
   // Exercise 6
+object Exercise06Spec
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex06.00: Uncurrying doesn't change value of isSortedCurried [sorted]") =
     forAll(intArray) { ints =>
@@ -154,6 +163,8 @@ object ExercisesSpec
         isSortedCurriedUncurried(ints, order) == isSorted(ints, order) } }
 
   // Exercise 7
+object Exercise07Spec
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex07.00: Associative (compose(compose (f,g),h) == compose (f, compose(g,h))") = 
     forAll { (f :Int => Int, g: Int => Int, h: Int => Int) =>

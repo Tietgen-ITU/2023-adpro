@@ -33,44 +33,74 @@ object List:
     foldRight[A, List[B]] (l, Nil, (a, z) => Cons(f(a), z))
 
   // Exercise 1 (is to be solved without programming)
+  /*
+  This returns 3. Because it matches the third case. Even though that it would match some of the other cases
+  then it uses the first that matches and executes the right hand part of it.
+  */
 
   // Exercise 2
 
-  def tail[A] (l: List[A]): List[A] = ???
+  def tail[A] (l: List[A]): List[A] = l match
+    case Nil => throw NoSuchElementException()
+    case Cons(head, tail) => tail
+  
 
   // Exercise 3
 
-  def drop[A] (l: List[A], n: Int): List[A] = ???
+  def drop[A] (l: List[A], n: Int): List[A] = n match
+    case x if x <= 0 => l
+    case x => drop(tail(l), x-1)
 
   // Exercise 4
 
-  def dropWhile[A] (l: List[A], p: A => Boolean): List[A] = ???
+  def dropWhile[A] (l: List[A], p: A => Boolean): List[A] = l match
+    case Nil          => Nil
+    case Cons(x, xs)  => p(x) match 
+                          case true => dropWhile(xs,p)
+                          case false => l
 
   // Exercise 5
 
-  def init[A] (l: List[A]): List[A] = ???
+  def init[A] (l: List[A]): List[A] = l match
+    case Nil => throw NoSuchElementException()
+    case Cons(x, Nil) => Nil
+    case Cons(x, xs) => Cons(x, init(xs))
+  
 
   // Exercise 6
 
-  def length[A] (l: List[A]): Int = ???
+  def length[A] (l: List[A]): Int =
+    foldRight(l, 0, (_,b) => b+1)
 
   // Exercise 7
 
-  def foldLeft[A, B] (l: List[A], z: B, f: (B, A) => B): B = ???
+  @annotation.tailrec
+  def foldLeft[A, B] (l: List[A], z: B, f: (B, A) => B): B = 
+    l match
+      case Nil          => z
+      case Cons(x, xs)  => foldLeft(xs, f(z, x), f)
 
   // Exercise 8
 
-  def product (as: List[Int]): Int = ???
+  def product (as: List[Int]): Int = 
+    foldLeft(as, 1, (acc, x) => acc * x)
 
-  def length1[A] (as: List[A]): Int = ???
+  def length1[A] (as: List[A]): Int = 
+    foldLeft(as, 0, (acc, _) => acc+1)
 
   // Exercise 9
 
-  def reverse[A] (l: List[A]): List[A] = ???
+  def reverse[A] (l: List[A]): List[A] = 
+    foldLeft[A,List[A]](l, Nil, (xs, x) => Cons(x,xs))
 
   // Exercise 10
 
-  def foldRight1[A, B] (l: List[A], z: B, f: (A, B) => B): B = ???
+  def foldRight1[A, B] (l: List[A], z: B, f: (A, B) => B): B = 
+    def aux(a: List[A], c: B => B): B = a match 
+      case Nil => c(z)
+      case Cons(x, xs) => aux(xs, (acc:B) => c(f(x, acc))) 
+
+    aux(l, a => a)
 
   // Exercise 11
 

@@ -41,15 +41,27 @@ def toScala[A] (l: List[A]): scala.collection.immutable.List[A] =
     case Nil => scala.collection.immutable.Nil
     case Cons(h, t) => h :: toScala(t)
 
-object ExercisesSpec
-  extends org.scalacheck.Properties("adt"):
 
+// Reusable tests for length (use the same tests for length & length1)
+def lenSpec[A: Arbitrary](fn: String, f: List[A] => Int) =
+  Seq[(String, Prop)] (
+    (f"00: $fn of an empty list is 0",
+      f(Nil) == 0 ),
+
+    (f"01: $fn of a singleton is 1",
+      forAll { (a: A) => f(List(a)) ?= 1 } ),
+
+    (f"02: $fn(l) grows by one when we Cons",
+      forAll { (l: List[A], a: A) => f(l) + 1 == f(Cons(a, l)) }),
+  )
 
   // Exercise 1 requires no programming
 
 
 
   // Exercise 2 (tail)
+object ExerciseSpec02
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex02.00: tail on an empty list throws NoSuchElement") =
     Try { tail(Nil) } match
@@ -66,6 +78,8 @@ object ExercisesSpec
 
 
   // Exercise 3 (drop)
+object ExerciseSpec03
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex03.00: drop(l, 1) should behave like tail(l) [nonempty]") =
      forAllNoShrink(nonEmptyListOf[Int]) { l => tail(l) eq drop(l, 1) }
@@ -103,6 +117,8 @@ object ExercisesSpec
 
 
   // Exercise 4 (dropWhile)
+object ExerciseSpec04
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex04.00: dropWhile(Nil, p) is Nil for any p") =
     forAll { (p: Int => Boolean) => dropWhile(Nil, p) ?= Nil }
@@ -134,6 +150,8 @@ object ExercisesSpec
 
 
   // Exercise 5 (init)
+object ExerciseSpec05
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex05.00: init(Nil) throws NoSuchElement") =
     Try { init(Nil) } match
@@ -166,6 +184,8 @@ object ExercisesSpec
       (f"02: $fn(l) grows by one when we Cons",
         forAll { (l: List[A], a: A) => f(l) + 1 == f(Cons(a, l)) }),
     )
+object ExerciseSpec06
+  extends org.scalacheck.Properties("intro"):
 
   // Tried using `include` but tests were run twice (perhaps
   // some scala-cli mess), so resorted to manual (imperative) management
@@ -179,6 +199,8 @@ object ExercisesSpec
 
 
   // Exercise 7 (foldLeft)
+object ExerciseSpec07
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex07.00: foldLeft returns the initial value for Nil") =
     forAll { (z: Int, f: (Int, String) => Int) =>
@@ -212,6 +234,8 @@ object ExercisesSpec
 
 
   // Exercise 8 (product and length1)
+object ExerciseSpec08
+  extends org.scalacheck.Properties("intro"):
 
   // Tried using `include` but tests were run twice (perhaps
   // some scala-cli mess), so resorted to manual (imperative) management
@@ -234,6 +258,8 @@ object ExercisesSpec
 
 
   // "Exercise 9 (reverse)
+object ExerciseSpec09
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex09.00: reverse of a Nil is Nil") = reverse(Nil) ?= Nil
 
@@ -255,6 +281,8 @@ object ExercisesSpec
 
 
   // Exercise 10 (foldRight1)
+object ExerciseSpec10
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex10.00: A sequence of subtractions same as with foldRight") =
     forAll { (l: List[Int]) =>
@@ -271,6 +299,8 @@ object ExercisesSpec
       foldRight1(l, z, f) == foldRight(l, z, f) }
 
   // Exercise 11 (foldLeft1)
+object ExerciseSpec11
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex11.00: check a sequence of subtractions against foldLeft") =
     forAll { (l: List[Int]) =>
@@ -289,6 +319,8 @@ object ExercisesSpec
 
 
   // Exercise 12 (concat)
+object ExerciseSpec12
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex12.00: Append of Nil is Nil") = { concat(Nil) ?= Nil }
 
@@ -306,6 +338,9 @@ object ExercisesSpec
 
 
   // Exercise 13 (filter)
+object ExerciseSpec13
+  extends org.scalacheck.Properties("intro"):
+
   property("Ex13.00: Filter on Nil is Nil") =
     forAll { (p: Int => Boolean) => filter[Int](Nil, p) ?= Nil }
 
@@ -324,6 +359,8 @@ object ExercisesSpec
       filter(l, p) ?= List(toScala(l).filter(p)*) }
 
   // Exercise 14 (flatMap)
+object ExerciseSpec14
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex14.00: flatMap(List(1,2,3)) (i => List(i,i)) is List(1,1,2,2,3,3)") =
     flatMap(List(1, 2, 3), i => List(i,i)) ?= List(1, 1, 2, 2, 3, 3)
@@ -348,12 +385,16 @@ object ExercisesSpec
 
 
   // Exercise 15 (filter1)
+object ExerciseSpec15
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex15.00: filter and filter1 are equivalent") =
     forAll { (l: List[Int], p: Int => Boolean) =>
       filter1(l, p) ?= filter(l,p) }
 
   // Exercise 16 (addPairwise)
+object ExerciseSpec16
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex16.00: List(1,2,3) + List(4,5,6,7) == List(5,7,9)") =
     addPairwise(List(1, 2, 3), List(4, 5, 6, 7)) ?= List(5, 7, 9)
@@ -384,6 +425,9 @@ object ExercisesSpec
 
 
   // Exercise 17 (zipWith)
+object ExerciseSpec17
+  extends org.scalacheck.Properties("intro"):
+
   property("Ex17.00: zipWith with plus is addPairwise") =
     forAll { (l: List[Int], r: List[Int]) =>
        zipWith(l, r, _ + _) ?= addPairwise(l,r) }
@@ -408,6 +452,8 @@ object ExercisesSpec
 
 
   // Exercise 18 (hasSubsequence)
+object ExerciseSpec18
+  extends org.scalacheck.Properties("intro"):
 
   property("Ex18.00: test cases from the exercise") =
     val l = List(1, 2, 3, 4)

@@ -104,15 +104,21 @@ object List:
 
   // Exercise 11
 
-  def foldLeft1[A, B] (l: List[A], z: B, f: (B, A) => B): B = ???
+  def foldLeft1[A, B] (l: List[A], z: B, f: (B, A) => B): B = 
+    foldRight1[A, B => B](l, a => a, (x,y) => b => y(f(b,x)))(z)
 
   // Exercise 12
 
-  def concat[A] (l: List[List[A]]): List[A] = ???
+  def concat[A] (l: List[List[A]]): List[A] =
+    foldRight1[List[A], List[A]](l, Nil, append)
 
   // Exercise 13
 
-  def filter[A] (l: List[A], p: A => Boolean): List[A] = ???
+  def filter[A] (l: List[A], p: A => Boolean): List[A] = 
+    foldRight[A, List[A]](l, Nil, (x, acc) => p(x) match
+      case true => Cons(x, acc)
+      case false => acc
+    )
 
   // Exercise 14
 

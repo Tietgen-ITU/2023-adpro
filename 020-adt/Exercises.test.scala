@@ -41,7 +41,6 @@ def toScala[A] (l: List[A]): scala.collection.immutable.List[A] =
     case Nil => scala.collection.immutable.Nil
     case Cons(h, t) => h :: toScala(t)
 
-
 // Reusable tests for length (use the same tests for length & length1)
 def lenSpec[A: Arbitrary](fn: String, f: List[A] => Int) =
   Seq[(String, Prop)] (
@@ -170,20 +169,6 @@ object ExerciseSpec05
 
 
   // Exercise 6 (length)
-
-  // Reusable tests for length (use the same tests for length & length1)
-
-  def lenSpec[A: Arbitrary](fn: String, f: List[A] => Int) =
-    Seq[(String, Prop)] (
-      (f"00: $fn of an empty list is 0",
-        f(Nil) == 0 ),
-
-      (f"01: $fn of a singleton is 1",
-        forAll { (a: A) => f(List(a)) ?= 1 } ),
-
-      (f"02: $fn(l) grows by one when we Cons",
-        forAll { (l: List[A], a: A) => f(l) + 1 == f(Cons(a, l)) }),
-    )
 object ExerciseSpec06
   extends org.scalacheck.Properties("intro"):
 

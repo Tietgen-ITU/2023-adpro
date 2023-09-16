@@ -159,8 +159,8 @@ def mean(xs: Seq[Double]): Option[Double] =
 // Exercise 8
 
 def variance(xs: Seq[Double]): Option[Double] =
-  mean(xs).flatMap(u => mean(xs.flatMap(x => List(math.pow(x-u, 2)))))
-
+  mean(xs).flatMap(u => mean(xs.flatMap(x => List(math.pow(x-u, 2))))) /* Was unsure if it was allowed to use map on xs, so had to implement , in my opinion, a 
+                                                                          very nasty way of creating a list of means by using `xs.flatMap(x => List(...))` */
 
 def variance1(xs: Seq[Double]): Option[Double] = 
   for {

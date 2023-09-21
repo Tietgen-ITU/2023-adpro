@@ -1,5 +1,5 @@
 def id[A](a : A) : A =
-  println a
+  println(a)
   a
 
 def if1[A](cond : Boolean, onTrue : A, onFalse : A) : A =

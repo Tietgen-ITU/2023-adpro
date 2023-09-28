@@ -285,7 +285,7 @@ object LazyListSpec
     forAll { (l: LazyList[Int], n: Int) =>
       l.take(n).toList == l.takeUnfold(n).toList }
 
-  property("Ex13.03: mapUnfold does not force infinitely many elements") =
+  property("Ex13.03: takeUnfold does not force infinitely many elements") =
     naturals.takeUnfold(100) 
     true
 
@@ -294,7 +294,7 @@ object LazyListSpec
       l.takeWhile(p).toList == l.takeWhileUnfold(p).toList }
 
   property("Ex13.05: mapUnfold does not force infinitely many elements") =
-    naturals.takeUnfold(100) 
+    naturals.mapUnfold { x => x + 1 } 
     true
 
   private def cbn[A, B](p: (A, A) => B)(x: => A, y: => A): B = p(x,y)

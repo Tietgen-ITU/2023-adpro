@@ -96,24 +96,31 @@ object Par:
   // Exercise 1
   
   /* Write the answer here in a comment 
-   * ...
+   * The reason is that it will wait until the Par type is actually being 
+   * executed. So it uses by name so that it can wait computing the potentially
+   * heavy computation.
    */
   
   // Exercise 2 
   
   def asyncF[A, B](f: A => B): A => Par[B] = 
-    ???
+    a => lazyUnit(f(a))
   
   // Exercise 3
-  
+  // TODO: Do this one at some point
   /* Write the answer here in a comment:
-   * ...
+   * I would first test that the map didn't execute anything, that makes it waiting. We can do this
+   * by creating a function that takes a long time, and then time how long it takes map to return,
+   * the new Par[B]. It should just build our Par structure, so it should be instantly. 
+   * Secondly I would ensure that the mapping function works. We can do that by providing a 
+   * unit(Int) and a mapping function would turn the Int into a string. We would then call run and see
+   * if it returns the valu we expected.
    */
   
   // Exercise 4
 
   def sequence[A](ps: List[Par[A]]): Par[List[A]] =
-    ???
+    ps.foldRight[Par[List[A]]](unit(Nil))((a,b) => a.map2(b)((x,y) => x::y))
 
   /* This is shown in the book: */
   def parMap[A, B](as: List[A]) (f: A => B): Par[List[B]] =

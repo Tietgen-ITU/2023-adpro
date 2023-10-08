@@ -157,7 +157,7 @@ object Par:
   // It has to be adapted to the non-blocking representation of Par and
   // Future that we are using in this chapter.
   def choiceN[A](pn: Par[Int])(choices: List[Par[A]]): Par[A] =
-    pn.map2(sequence(choices))((x,y) => y(x))
+    pn.map2(sequence(choices))((idx, ls) => ls(idx))
  
   def choice[A](pb: Par[Boolean])(t: Par[A], f: Par[A]): Par[A] =
     def btoi(pb: Par[Boolean]): Par[Int] =

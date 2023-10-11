@@ -106,7 +106,7 @@ object Par:
   // Exercise 2 
   
   def asyncF[A, B](f: A => B): A => Par[B] = 
-    f andThen lazyUnit
+    a => lazyUnit(f(a))
   
   // Exercise 3
   /* Write the answer here in a comment:

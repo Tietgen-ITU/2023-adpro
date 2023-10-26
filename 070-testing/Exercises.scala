@@ -7,9 +7,9 @@ import org.scalacheck.*
 import org.scalacheck.Prop.*
 import org.scalacheck.Arbitrary.arbitrary
 
-// import lazyList00.* // uncomment to test the book laziness solution implementation
+import lazyList00.* // uncomment to test the book laziness solution implementation
 // import lazyList01.* // uncomment to test the broken headOption implementation
-import lazyList02.* // uncomment to test another version
+// import lazyList02.* // uncomment to test another version
 
 /* Generators and helper functions */
 

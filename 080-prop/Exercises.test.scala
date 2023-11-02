@@ -167,14 +167,14 @@ object PropSpec
         .exists { _ > 0 }
     }
 
-  property("ex06.07: gen.double generates numbers smaller than 1.0") =
+  property("Ex06.07: gen.double generates numbers smaller than 1.0") =
     sc.Prop.forAll { (rng: RNG) =>
       Gen.double
         .toLazyList(rng)
         .take(5000)
         .exists { _ <= 1.0 }
     }
-  property("ex06.08: gen.double generates numbers greater than 1.0") =
+  property("Ex06.08: gen.double generates numbers greater than 1.0") =
     sc.Prop.forAll { (rng: RNG) =>
       Gen.double
         .toLazyList(rng)

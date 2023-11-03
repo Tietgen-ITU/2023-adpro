@@ -1,0 +1,7 @@
+This bundle contains old questions from prior editions in ADPRO. Starting 2021
+the exams are presented in Scala 3, using scala-cli, so they are similar to
+present editions of the course.
+
+Over time the topics in the course have been changing slightly, so some old
+exam questions are not relevant.  If in doubt about a particular question, ask
+in discord.

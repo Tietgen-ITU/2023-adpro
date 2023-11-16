@@ -176,10 +176,10 @@ trait Parsers[ParseError, Parser[+_]]:
 
   extension [A](p1: Parser[A]) 
     def map2[B, C](p2: => Parser[B]) (f: (A, B) => C): Parser[C] =
-      ???
+      p1.flatMap(x => p2.map(y => f(x,y)))
 
     def product[B] (p2: => Parser[B]): Parser[(A,B)] =
-      ???
+      p1.flatMap(x => p2.map(y => (x,y)))
 
     // Write here: 
     //
@@ -203,7 +203,7 @@ trait Parsers[ParseError, Parser[+_]]:
 
   extension [A](p: Parser[A]) 
     def many: Parser[List[A]] = 
-      ???
+        
 
   // Exercise 3
 
@@ -213,7 +213,7 @@ trait Parsers[ParseError, Parser[+_]]:
 
   // Exercise 4
 
-  // A better name would be: howManyA
+  // A better name would be: howManyA 
   def manyA: Parser[Int] =
     ???
 

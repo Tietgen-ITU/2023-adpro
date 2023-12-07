@@ -65,11 +65,15 @@ val BallsNo: Int = 8
 
 // bernoulli[U] (probability: Double, success: U, failure: U): Dist[U]
 
+
 enum Ball: 
   case Red, Black
 import Ball.*
 
-def pick (n: Int): Dist[Ball] = ???
+def pick (n: Int): Dist[Ball] =
+  val p = 1/(n+1)
+  Pigaro.bernoulli[Ball](p, Ball.Red, Ball.Black)
+
 
 //  Exercise 2. 
 //
@@ -88,7 +92,7 @@ def pick (n: Int): Dist[Ball] = ???
 
 
 def move(player: Player, n: Int): Dist[Player] = 
-  ???
+  pick
 
 // Exercise 3.
 //

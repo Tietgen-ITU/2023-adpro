@@ -45,6 +45,8 @@ import org.scalactic.TripleEquals.*
 // Used by 'each' in monocle
 import cats.Order
 import cats.implicits.catsKernelStdOrderForString
+import adpro.lens.Laws.putGet
+import adpro.lens.Laws.putPut
 
 
 
@@ -60,14 +62,16 @@ val L1 = Lens[(String,Int), String](get = _._1)(replace = s1 => _ => (s1, 0))
  * below:
  */
 
-lazy val L2: Lens[String, (String, Int)] =
-  ???
+lazy val L2: Lens[String, (String, Int)] = 
+  Lens[String, (String, Int)](get = s => (s, 0))(replace = s1 => _ => s1._1)
 
 /* Finally, complete the example from page 7 in Foster et al.:
  */
 
 lazy val L3: Lens[(String,Int), String] =
-  ???
+  Lens[(String, Int), String]
+    (get = _._1)
+    (replace = s => s1 => if s == s1._1 then s1 else (s, s1._2+1))
 
 /* We will test these implementations in Exercise 3.  For now, we are
  * satisfied if they type check and compile.
@@ -84,17 +88,17 @@ lazy val L3: Lens[(String,Int), String] =
 object Laws:
 
   def putGet[C: Arbitrary, A: Arbitrary: Equality](l: Lens[C, A]): Prop =
-    ???
+    forAll((concrete: C, a: A) => l.get(l.replace(a)(concrete)) == a)
 
   /* Write the GetPut law: */
 
   def getPut[C: Arbitrary: Equality, A](l: Lens[C, A]): Prop =
-    ???
+    forAll((concrete: C) => l.replace(l.get(concrete))(concrete) == concrete)
 
   /* Write the PutPut law: */
 
   def putPut[C: Arbitrary: Equality, A: Arbitrary](l: Lens[C, A]): Prop =
-    ???
+    forAll((c: C, a1: A, a2: A) => l.replace(a1)(l.replace(a2)(c)) == l.replace(a1)(c))
 
   /* There is no tests for this exercise, but we will use the laws below, 
    * which will also test them.
@@ -130,13 +134,13 @@ object Ex03Spec
   extends org.scalacheck.Properties("ex03.."):
 
   property("Ex03.00: putGet && putPut for L1") =
-    ???
+    (Laws.putGet(L1) :| "PutGet Law") && (Laws.putPut(L1) :| "PutPut Law")
 
   property("Ex03.01: getPut && putPut laws") =
-    ???
+    (Laws.getPut(L2) :| "GetPut Law") && (Laws.putPut(L2) :| "PutPut Law")
 
   property("Ex03.02: L3 is well behaved") =
-    ???
+    Laws.wellBehavedTotalLense(L3)
 
 end Ex03Spec 
 
@@ -153,7 +157,12 @@ end Ex03Spec
  */
 
 def codiag[A]: Lens[Either[A, A], A] =
-  ???
+  Lens[Either[A,A], A]
+    (get = e => e match
+      case Left(value)  => value
+      case Right(value) => value
+    )
+    (replace = a => _ => Right(a))
 
 
 
@@ -178,7 +187,7 @@ def codiag[A]: Lens[Either[A, A], A] =
  */
 
 def codiag1[A]: Lens[Either[A, A], A] =
-  ???
+  ?
 
  
 /* Exercise 6

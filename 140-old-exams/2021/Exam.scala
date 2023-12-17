@@ -43,7 +43,6 @@
  * Good luck!
  */
 
-//> using target { scope "main" }
 //> using scala "3.1.3"
 //> using lib "org.scalacheck::scalacheck:1.16.0"
 //> using lib "org.scalactic::scalactic:3.2.14"

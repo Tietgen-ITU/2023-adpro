@@ -1,4 +1,3 @@
-//> using target { scope "main" }
 package fpinscala.answers
 package monads
 

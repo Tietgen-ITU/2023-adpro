@@ -45,6 +45,9 @@ import org.scalactic.TripleEquals.*
 // Used by 'each' in monocle
 import cats.Order
 import cats.implicits.catsKernelStdOrderForString
+import adpro.lens.Laws.putGet
+import adpro.lens.Laws.putPut
+import adpro.lens.Example4.index
 
 
 
@@ -60,14 +63,17 @@ val L1 = Lens[(String,Int), String](get = _._1)(replace = s1 => _ => (s1, 0))
  * below:
  */
 
-lazy val L2: Lens[String, (String, Int)] =
-  ???
+lazy val L2: Lens[String, (String, Int)] = Lens[String, (String, Int)]
+  (get = s => (s, 0))
+  (replace = s1 => _ => s1._1)
 
 /* Finally, complete the example from page 7 in Foster et al.:
  */
 
 lazy val L3: Lens[(String,Int), String] =
-  ???
+  Lens[(String, Int), String]
+    (get = _._1)
+    (replace = s => s1 => if s == s1._1 then s1 else (s, s1._2+1))
 
 /* We will test these implementations in Exercise 3.  For now, we are
  * satisfied if they type check and compile.
@@ -84,17 +90,17 @@ lazy val L3: Lens[(String,Int), String] =
 object Laws:
 
   def putGet[C: Arbitrary, A: Arbitrary: Equality](l: Lens[C, A]): Prop =
-    ???
+    forAll((concrete: C, a: A) => l.get(l.replace(a)(concrete)) == a)
 
   /* Write the GetPut law: */
 
   def getPut[C: Arbitrary: Equality, A](l: Lens[C, A]): Prop =
-    ???
+    forAll((concrete: C) => l.replace(l.get(concrete))(concrete) == concrete)
 
   /* Write the PutPut law: */
 
   def putPut[C: Arbitrary: Equality, A: Arbitrary](l: Lens[C, A]): Prop =
-    ???
+    forAll((c: C, a1: A, a2: A) => l.replace(a1)(l.replace(a2)(c)) == l.replace(a1)(c))
 
   /* There is no tests for this exercise, but we will use the laws below, 
    * which will also test them.
@@ -130,13 +136,13 @@ object Ex03Spec
   extends org.scalacheck.Properties("ex03.."):
 
   property("Ex03.00: putGet && putPut for L1") =
-    ???
+    (Laws.putGet(L1) :| "PutGet Law") && (Laws.putPut(L1) :| "PutPut Law")
 
   property("Ex03.01: getPut && putPut laws") =
-    ???
+    (Laws.getPut(L2) :| "GetPut Law") && (Laws.putPut(L2) :| "PutPut Law")
 
   property("Ex03.02: L3 is well behaved") =
-    ???
+    Laws.wellBehavedTotalLense(L3)
 
 end Ex03Spec 
 
@@ -153,7 +159,15 @@ end Ex03Spec
  */
 
 def codiag[A]: Lens[Either[A, A], A] =
-  ???
+  Lens[Either[A,A], A]
+    (get = e => e match
+      case Left(vl)  => vl
+      case Right(vr) => vr
+    )
+    (replace = a => b => b match
+      case Left(_) => Left(a) 
+      case Right(_) => Right(a)
+    )
 
 
 
@@ -178,9 +192,8 @@ def codiag[A]: Lens[Either[A, A], A] =
  */
 
 def codiag1[A]: Lens[Either[A, A], A] =
-  ???
+  lensChoice.choice(Iso.id, Iso.id)
 
- 
 /* Exercise 6
  *
  * Important: This exercise shows the main application of lenses
@@ -227,13 +240,19 @@ val itu = University(
  * or Java).
  */
 
-lazy val itu1: University = ???
+lazy val itu1: University = 
+  itu.students.get("Alex")
+              .map(addr => itu.copy(students = itu.students + ("Alex" -> addr.copy(zipcode = "9100"))))
+              .get
  
 /* As you see doing this without lenses is very very annoying.  Updating
  * nested properties in complex objects is much easier in imperative
  * programming.
+ * 
+ * My Reflections:
+ * It is very inconvenient to do this out selfes. Especially thinking about the amount of code that is necessary to
+ * write every time we would have to "modify" a tree-like object.
  */ 
-
 
 
 /* Exercise 7
@@ -246,14 +265,14 @@ lazy val itu1: University = ???
  */
 
 lazy val _zipcode: Lens[Address, ZipCode] =
-  ???
+  Lens[Address, ZipCode] (get = a => a.zipcode) (replace = z => a => a.copy(zipcode = z))
 
 /* b) design a lense that accesses the students collection from university:
  *  (1-2 lines)
  */ 
 
 lazy val _students: Lens[University, Students] =
-  ???
+  Lens[University, Students] (get = a => a.students) (replace = s => a => a.copy(students = s ))
 
 /* c) Use the following partial lense 'index(name)' from Monocle:
  *
@@ -272,7 +291,12 @@ lazy val _students: Lens[University, Students] =
  */
 
 lazy val itu2: University =
-  ???
+  itu.focus()                       // focus lets us start the composition of lenses
+    .andThen(_students)             // then we compose the function to get and set the students map
+    .andThen(index("Alex"))         // then we compose the Lens that gets the student alex and can set the student alex
+    .andThen(_zipcode)              // then we compose with the lens to change a students zipcode
+    .modify(_ => "9100")            // and then we change it
+
 
 /* Now once you provide lenses for your types, navigating and modifying deep
  * structures becomes more readable and easier to write.  In fact, lense
@@ -295,18 +319,22 @@ val _zipcode1 : Lens[Address, ZipCode] =
 // Define _students1 analogously, complete itu3 to use these new lenses (with
 // the same specification as itu2).
 
-lazy val _students1: Lens[University, Students] =
-  ???
+lazy val _students1: Lens[University, Map[String, Address]] =
+  Focus[University](_.students)
 
 lazy val itu3: University =
-  ???
+  itu.focus()
+    .andThen(_students1)
+    .andThen(index("Alex"))
+    .andThen(_zipcode1)
+    .modify(_ => "9100")
 
 /* As a curiosity, here is an example that this can be moved even closer to
  * imperative style, using extension methods and macros:
  */
 
 lazy val itu4: University =
-  ???
+  _students1.index("Alex").andThen(_zipcode1).modify(_ => "9100")(itu)
 
 /* Note how similarly it would look in Java, imperative style
  *
@@ -361,16 +389,15 @@ lazy val itu4: University =
  *   _country (1 line):
  */
 
-lazy val _country: Lens[Address,String] = ???
+lazy val _country: Lens[Address,String] = 
+  Focus[Address](_.country)
 
 /* Now compute itu5, that has the same entries as ITU, but all country names
  * are upper case. (1-6 lines)
  */
 
 lazy val itu5: University =
-  ???
-
-
+  _students1.each.andThen(_country).modify(s => s.toUpperCase())(itu)
 
 /* Exercise 10
  *
@@ -382,8 +409,9 @@ lazy val itu5: University =
  */
 
 lazy val itu6: University =
-  ???
-
+  _students1.filterIndex((p: String) => p.charAt(0).toUpper == 'A')
+    .andThen(_country)
+    .modify(s => s.toUpperCase())(itu)
  
 /* Exercise 11
  *
@@ -402,15 +430,21 @@ lazy val itu6: University =
  * obtain a total lense.  We first try the partial version (ca. 5-8 lines):
  */
 
-def ith[A](n: Integer): Optional[List[A], A] =
-  ???
-
+def ith[A](n: Int): Optional[List[A], A] =
+  Optional[List[A], A]
+    (xs => if xs.length > n then Some(xs(n)) else None) 
+    (a => xs => if xs.length > n then xs.updated(n, a) else xs)
+  
 /* Now create the total lense with a default value that extends the
  * list, if the list is too short (8-15 lines):
  */
 
-def ith1[A](default: A)(n: Integer): Lens[List[A], A] =
-  ???
+def ith1[A](default: A)(n: Int): Lens[List[A], A] =
+  Lens[List[A], A] 
+    (get = xs => if xs.length > n then xs(n) else default)
+    (replace = a => xs => if xs.length > n then xs.updated(n, a) else 
+      xs.appendedAll(List.fill((n+1) - xs.length)(default)).updated(n, a)
+      )
 
 
 
@@ -426,5 +460,7 @@ val list0: List[Int] = List(1, 2, 3, 4, 5, 6)
 
 // list1 should contain list0 with the third element incremented:
 
-lazy val list1: List[Int] = ???
+lazy val list1: List[Int] = list0.focus()
+                                  .andThen(ith(2))
+                                  .modify(_+1)
 

@@ -183,9 +183,9 @@ trait Parsers[ParseError, Parser[+_]]:
 
     // Write here: 
     //
-    // (1) ...
+    // (1) This is because it does not have to. It is extension functions on the type A
     //
-    // (2) ...
+    // (2) That is because if the first part(p1) does not parse then there is no reason to try and parse the second part
 
     def **[B](p2: => Parser[B]): Parser[(A, B)] = 
       p1.product(p2)
@@ -203,38 +203,42 @@ trait Parsers[ParseError, Parser[+_]]:
 
   extension [A](p: Parser[A]) 
     def many: Parser[List[A]] = 
-        
+      p.map2[List[A], List[A]](p.many) ((p1, p2) => p1::p2).or(succeed(List.empty))
 
   // Exercise 3
 
   extension [A](p: Parser[A])
     def map[B](f: A => B): Parser[B] =
-      ???
+      p.flatMap(a => succeed(f(a)))
 
   // Exercise 4
 
   // A better name would be: howManyA 
   def manyA: Parser[Int] =
-    ???
+    char('a').many.map(a => a.length)
 
   // Exercise 5
   
   extension [A](p: Parser[A]) 
     def many1: Parser[List[A]] =
-      ???
+      p.map2(p.many)((p1, pm) => p1::pm)
       
-  // Write here ...
+  // Write here 
+  /*
+  * It is because the type Parser[A] is not specified other than that it is a type that can parse something. So since it is not a class or a trait then we need to specify 
+  * extension functions in order to create common code.
+  */
 
   // Exercise 6
 
   extension [A](p: Parser[A]) 
     def listOfN(n: Int): Parser[List[A]] =
-      ???
+      p.map2(p.listOfN(n-1))((p1, pn) => p1::pn).or(succeed(List.empty))
 
   // Exercise 7
 
   def digitTimesA: Parser[Int] =
-    ???
+    regex("[0-9]".r).flatMap(n => char('a').listOfN(n.toInt).map(xs => xs.length))
 
   // For Exercise 8 read the code below until you find it.
 
@@ -415,7 +419,7 @@ object Sliceable
 
   /** Consume no characters and succeed with the given value */
   def succeed[A](a: A): Parser[A] =
-    ???
+    p => Success(a, 0)
 
   // For Exercise 9 continue reading below
 
@@ -475,13 +479,20 @@ object Sliceable
   // Exercise 9
  
   extension [A](p: Parser[A]) 
-    def or(p2: => Parser[A]): Parser[A] =
-      ???
+    def or(p2: => Parser[A]): Parser[A] = (s: ParseState) =>
+      p(s) match
+        case Success(a, n) => Success(a,n)
+        case Slice(length) => p2(s)
+        case Failure(get, isCommitted) => p2(s)
+      
 
   // Exercise 10
 
   def regex(r: Regex): Parser[String] = (s: ParseState) =>
-    ???
+    r.findPrefixMatchOf(s.input) match
+      case Some(v) => Success(v.toString(), v.end)
+      case None => Failure(s.loc.toError("could not parse with regex"), true) // TODO: What the fuck is this
+    
    
 end Sliceable
 

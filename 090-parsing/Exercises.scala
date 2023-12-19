@@ -491,7 +491,7 @@ object Sliceable
   def regex(r: Regex): Parser[String] = (s: ParseState) =>
     r.findPrefixMatchOf(s.input) match
       case Some(v) => Success(v.toString(), v.end)
-      case None => Failure(s.loc.toError("could not parse with regex"), true) // TODO: What the fuck is this
+      case None => Failure(s.loc.toError("could not parse with regex"), true) // TODO: What the fuck is this... look into what the parser really does
     
    
 end Sliceable

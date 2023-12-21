@@ -481,9 +481,8 @@ object Sliceable
   extension [A](p: Parser[A]) 
     def or(p2: => Parser[A]): Parser[A] = (s: ParseState) =>
       p(s) match
-        case Success(a, n) => Success(a,n)
-        case Slice(length) => p2(s)
         case Failure(get, isCommitted) => p2(s)
+        case r => r
       
 
   // Exercise 10
@@ -519,13 +518,14 @@ class JSONParser[ParseError, Parser[+_]](P: Parsers[ParseError,Parser]):
   // Exercise 11
 
   lazy val QUOTED: Parser[String] =
-    ???
+    P.char('\"') |* P.regex("[a-zA-Z ]*".r) *| P.char('\"')
 
   lazy val DOUBLE: Parser[Double] =
-    ???
+    P.regex("([0-9]|[1-9]+[0-9]*).([0-9]|[1-9]+[0-9]*)".r).map(x => x.toDouble)
 
-  lazy val ws: Parser[Unit] =
-    ???
+  lazy val ws: Parser[Unit] = 
+    P.string(" ").many.map(_ => ())
+    
 
   // Exercise 13
   

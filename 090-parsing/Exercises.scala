@@ -530,36 +530,36 @@ class JSONParser[ParseError, Parser[+_]](P: Parsers[ParseError,Parser]):
   // Exercise 13
   
   lazy val jnull: Parser[JSON] =
-    ???
+    P.string("null").map(_ => JNull)
 
   lazy val jbool: Parser[JSON] =
-    ???
+    P.string("true").or(P.string("false")).map(x => if x == "true" then JBool(true) else JBool(false))
 
   lazy val jstring: Parser[JString] =
-    ???
+    QUOTED.map(x => JString(x))
 
   lazy val jnumber: Parser[JNumber] =
-    ??? 
+    DOUBLE.map(x => JNumber(x))
 
   // Exercise 13
 
   private lazy val commaSeparatedVals: Parser[List[JSON]] =
-    ???
+    (jnull.or(jbool).or(jstring).or(jnumber).or(jnull.or(jbool).or(jstring).or(jnumber))).many
 
   lazy val jarray: Parser[JArray] =
-    ???
+    (P.char('[') |* commaSeparatedVals *| P.char(']')).map(xs => JArray(xs))
 
   lazy val field: Parser[(String,JSON)] =
-    ???
+    QUOTED *| P.char(':') ** jnull.or(jbool).or(jstring).or(jnumber)
 
   private lazy val commaSeparatedFields: Parser[List[(String,JSON)]] =
-    ???
+    (field *| P.char(',')).many 
 
   lazy val jobject: Parser[JObject] =
-    ???
+    (P.char('{') |* commaSeparatedFields *| P.char('}')).map(x => JObject(x.toMap))
 
   lazy val json: Parser[JSON] =
-    ???
+    jobject
 
   // Exercise 14 (no code)
 

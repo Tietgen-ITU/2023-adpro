@@ -547,16 +547,16 @@ class JSONParser[ParseError, Parser[+_]](P: Parsers[ParseError,Parser]):
     (jnull.or(jbool).or(jstring).or(jnumber).or(jnull.or(jbool).or(jstring).or(jnumber))).many
 
   lazy val jarray: Parser[JArray] =
-    (P.char('[') |* commaSeparatedVals *| P.char(']')).map(xs => JArray(xs))
+    (P.char('[') |* commaSeparatedVals *| P.char(']')).map(xs => JArray(xs.toIndexedSeq))
 
   lazy val field: Parser[(String,JSON)] =
-    QUOTED *| P.char(':') ** jnull.or(jbool).or(jstring).or(jnumber)
+    QUOTED *| (ws |* P.char(':') *| ws) ** jnull.or(jbool).or(jstring).or(jnumber)
 
   private lazy val commaSeparatedFields: Parser[List[(String,JSON)]] =
     (field *| P.char(',')).many 
 
   lazy val jobject: Parser[JObject] =
-    (P.char('{') |* commaSeparatedFields *| P.char('}')).map(x => JObject(x.toMap))
+    ((P.char('{') *| ws) |* commaSeparatedFields *| (ws |* P.char('}'))).map(x => JObject(x.toMap))
 
   lazy val json: Parser[JSON] =
     jobject

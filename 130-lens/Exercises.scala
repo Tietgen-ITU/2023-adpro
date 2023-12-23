@@ -334,7 +334,12 @@ lazy val itu3: University =
  */
 
 lazy val itu4: University =
-  _students1.index("Alex").andThen(_zipcode1).modify(_ => "9100")(itu)
+  itu
+    .focus(_.students)
+    .at("Alex")
+    .some
+    .andThen(_zipcode) // focus syntax is not implemented for Optionals in monocle
+    .replace("9100")
 
 /* Note how similarly it would look in Java, imperative style
  *

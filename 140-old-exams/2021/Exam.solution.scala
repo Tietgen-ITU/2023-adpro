@@ -1,4 +1,3 @@
-//> using target { scope "main" }
 package adpro.solution
 
 import org.scalacheck.{Arbitrary, Gen, Prop}

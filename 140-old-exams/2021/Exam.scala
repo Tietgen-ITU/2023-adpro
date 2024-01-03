@@ -54,6 +54,12 @@ import fpinscala.answers.state.*
 import fpinscala.answers.monoids.Foldable
 import fpinscala.answers.parallelism.Par
 import fpinscala.answers.monads.Monad
+import fpinscala.answers.state.RNG.map2
+import fpinscala.answers.state.RNG.map
+import fpinscala.answers.state.RNG.double
+import fpinscala.answers.state.RNG.int
+import org.scalacheck.Prop
+import adpro.Q7.size
 
 
 object Q1:
@@ -87,7 +93,10 @@ object Q1:
    * the corresponding effect as calling the method hello in Java
    * implementation.  Uncomment the definition and fill in the gaps.
    */
-  // def hello (???: ???): ??? = ???
+  def hello (x: Printable): String = x match
+    case Printable.Triangle => "triangle"
+    case Printable.Square => "square"
+  
 
 end Q1
 
@@ -108,7 +117,8 @@ object Q2:
    * on the input list.
    */
 
-  def sequence[Err,A] (as: List[Either[Err,A]]): Either[Err, List[A]] = ???
+  def sequence[Err,A] (as: List[Either[Err,A]]): Either[Err, List[A]] = 
+    as.foldRight[Either[Err, List[A]]](Right(List.empty))((x, acc) => acc.flatMap(ls => x.map(v => v::ls)))
 
 end Q2
 
@@ -130,6 +140,7 @@ object Q3:
    */
 
    // def sequence ...
+   def sequence[F[_]: Foldable, A, Err](as: F[Either[Err, A]]): Either[Err, F[A]] = ???
 
 end Q3
 
@@ -155,7 +166,13 @@ object Q4:
 
   type Rand[A] = State[RNG, A]
 
-  lazy val riid: Rand[(Int,Int,Double)] = ???
+  lazy val riid: Rand[(Int,Int,Double)] = for {
+    x <- State(RNG.int)
+    y <- State(RNG.int)
+    a = Math.min(x,y)
+    b = Math.max(x,y)
+    z <- State(RNG.double)
+  } yield (a,b, a + (b-a).toDouble.abs * z)
 
 end Q4
 
@@ -212,8 +229,7 @@ end Q5
  * Indicative length: 2-5 lines.
  */
 
-// write here ...
-//
+// What we have used here is what we call implicit type converions. We have just implemented it with scala 3 by using the given keyword instead
 
 
 object Q7:
@@ -237,7 +253,7 @@ object Q7:
    * list is at least 10 elements? Explain.
    */
 
-  // Write here ...
+  // We cannot be sure that the is an end to it. We could just run the function forever
 
 end Q7
 
@@ -258,7 +274,13 @@ object Q8:
    * from the course.
    */
 
-  def checkIfLongerEqThan[A](s: LazyList[A])(n: Int): Boolean = ???
+  def checkIfLongerEqThan[A](s: LazyList[A])(n: Int): Boolean = n match
+    case 0 => true
+    case _ => s match
+      case LazyList.Empty =>  false
+      case LazyList.Cons(_, t) => checkIfLongerEqThan(t())(n-1)
+    
+  
 
 end Q8
 
@@ -294,7 +316,7 @@ object Q9:
         .map { l => LazyList(l*) } }
 
     property("Q9: Write the test here by replacing 'false' below") =
-      false
+      Prop.forAll((x: Int, ls: LazyList[Int]) => checkIfLongerEqThan(ls)(x) == size(ls) >= x)
 
 end Q9
 
@@ -312,7 +334,10 @@ object Q10:
    * Par[Option[A]] value, for any type 'A'.
    */
 
-  def flatten[A](opa: Option[Par[A]]): Par[Option[A]] = ???
+  def flatten[A](opa: Option[Par[A]]): Par[Option[A]] = opa match
+    case None => unit(None)
+    case Some(value) => value.map(Some.apply)
+  
 
 end Q10
 
@@ -327,7 +352,7 @@ end Q10
  * implementation.
  */
 
- // Write here ...
+ // It creates a way to represent an option as a parallel computation 
 
 
 
@@ -376,13 +401,15 @@ object Q12:
    * the code):
    */
 
-  // def sum (l: List[Int]): Int =
-  //   val initial: (List[Int], Int) = ???
-  //   val body = ???
-  //   val p = ???
+  type LI[A] = (List[A], A)
 
-  //   val result = loop[???,???](initial)(body)(p)
-  //   result._2
+  def sum (l: List[Int]): Int =
+    val initial: LI[Int] = (l, 0)
+    val body: LI[Int] => LI[Int] = (xs: List[Int], sum: Int) => (xs.tail, xs.head+sum)
+    val p: LI[Int] => Boolean = _._1.isEmpty
+
+    val result = loop[LI[Int], Id](initial)(body)(p)
+    result._2
 
 
   /* DISCLAIMER: Normally, we do not want to compute a sum of a list in this way.
@@ -405,6 +432,13 @@ object Q13:
    * value.
    */
 
-  def loop[A, M[_]: Monad] (initial: M[A]) (body: A => A) (p: A => Boolean): M[A] = ???
+  def loop[A, M[_]: Monad] (initial: M[A]) (body: A => A) (p: A => Boolean): M[A] = 
+
+    val m = summon[Monad[M]]
+
+    initial.flatMap(x => if p(x) then 
+                        loop(m.unit(body(x)))(body)(p) 
+                      else m.unit(x))
+
 
 end Q13

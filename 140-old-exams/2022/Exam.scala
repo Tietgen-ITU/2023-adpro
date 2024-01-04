@@ -81,7 +81,15 @@ object ExceptionalOptions:
    *
    * https://docs.scala-lang.org/scala3/book/fp-functional-error-handling.html */
 
-  def SafeTotal[A,B](f: A => B): A => Option[B] = ???
+  def SafeTotal[A,B](f: A => B): A => Option[B] = 
+
+    a => {
+      try
+        val x = f(a)
+        Some(x)
+      catch 
+        case e => None
+    }
 
 
 
@@ -90,7 +98,8 @@ object ExceptionalOptions:
    *
    * Notice that this question can be solved without answering Q1. */
 
-  def headOption[A](l: List[A]): Option[A] = ???
+  def headOption[A](l: List[A]): Option[A] = 
+    SafeTotal[List[A], A](_.head)(l)
 
 end ExceptionalOptions
 
@@ -129,10 +138,11 @@ object PrimesAndLaziness:
    * - The first two prime numbers `p1`, `p2` that are 10 apart (p2 - p1 == 10)
    * - The second next pair `p3, p4` with the same property. */
 
-  def primesApart(n: Int): LazyList[(Int,Int)] = ???
+  def primesApart(n: Int): LazyList[(Int,Int)] = 
+    primes.zip(primes.drop(1)).filter((x,y) => y-x == n)
 
-  lazy val (p1, p2): (Int, Int) = ???
-  lazy val (p3, p4): (Int, Int) = ???
+  lazy val (p1, p2): (Int, Int) = primesApart(10).headOption.get
+  lazy val (p3, p4): (Int, Int) = primesApart(10).drop(1).headOption.get
 
 
   
@@ -155,7 +165,7 @@ object PrimesAndLaziness:
     extends org.scalacheck.Properties("primesApartTest"): 
 
     property("Elements in pairs returned by primesApart differ by n") = 
-      ???
+      forAll((n:Int) => ((n % 21) % 2) == 0 ==> (primesApart(n%21).take(5).exists((x,y) => y-x != (n%21)) != true))
 
   end primesApartTest
 
@@ -189,9 +199,12 @@ object ApplesToApples:
    * does not compile and then add necessary code before the assertion so that
    * pickBetter can be used to pick a larger apple. */
 
-  // Write here ... 
+  // We have not implemented the trait Better for the type Apple
 
-  // assert(pickBetter(bigApple, smallApple) == bigApple)
+  given betterApple: Better[Apple] = new:
+    def leftBetter(left: Apple, right: Apple): Boolean = left.weight > right.weight
+
+  assert(pickBetter(bigApple, smallApple) == bigApple)
 
 
 
@@ -238,9 +251,9 @@ object SizedLists:
    * explicit type annotation for a list `l2` that contains three elements 
    * 3, 1, 4. */
 
-  val l1 = Cons(41, l0) 
+  val l1: SizedList[Int, Inc[Null]] = Cons(41, l0) 
  
-  val l2 = ???
+  val l2: SizedList[Int, Inc[Inc[Inc[Null]]]] = Cons(3, Cons(1, Cons(4, Empty)))
 
 
   
@@ -260,20 +273,23 @@ object SizedLists:
    * the third element in the list. The function should only be allowed to be 
    * called on a list containing at least three elements. */
 
-  // def third[A, S] ...
-
-
+  def third[A, S](l: SizedList[A, Inc[Inc[Inc[S]]]]): A = head(tail(tail(l)))
 
   /* Q10. (15%) Write a function `append` that adds an element to the end of the
    * List of type `Sized[A, S]` for any `A` and any `S`. Use recursion and respond to
    * the question in English below. */
 
-  // def append[ ... ](a: ..., l: ...): ... = ???
+  def append[A, S](a: A, l: SizedList[A, S]): SizedList[A, Inc[S]] = l match
+    case Empty => Cons[A, S](a, Empty)
+    case Cons(hd, tl) => Cons(hd, append(a, tl)) // Mark
+  
 
   /* Mark the polymorphically recursive call in your solution. Describe in
    * English what the type parameters are instantiated to in this call. */
 
-  // Write here ... 
+  // The type parameters of the recursive call is:
+  // - A: It is just A
+  // - S: It is SizedList[A, Inc[S]]
 
 
 

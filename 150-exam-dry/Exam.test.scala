@@ -15,3 +15,6 @@ object ExamSpec
     forAll { (n: Int) => n == n }
 
 end ExamSpec
+
+object NullUpdatesSpecObj
+  extends RL.NullUpdatesSpec(update = RL.update, "studentrl") {}

@@ -302,7 +302,9 @@ object RL:
      */
 
     property("00 Null update on null table 2x3") = 
-      ???
+        val initQT = qZero(2,3)
+
+        initQT == update(initQT, 0,0)(0.0, 0.0)
 
 
 
@@ -321,7 +323,12 @@ object RL:
      */
 
     property("01 Null update on null table 2x3") = 
-      ???
+        ???
+    //   given Arbitrary[Q[Int,Int]] = Arbitrary(qGen(2,3))
+
+    //   forAll((q: Q[Int, Int], x: Int, y: Int) =>  {
+    //     update()
+    //   })
 
   end NullUpdatesSpec
 
@@ -355,6 +362,6 @@ object RL:
   
   def updateWithLens[State, Action] (q: Q[State, Action], s: State, a: Action)
     (reward: Double, estimate: Double): Q[State, Action] =
-    ???
+    q.focus().andThen(lens(s, a)).modify(qsa => (1.0 - α) * qsa + α * (reward + γ * estimate))
 
 end RL

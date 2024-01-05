@@ -322,13 +322,21 @@ object RL:
      * same as the input table.
      */
 
-    property("01 Null update on null table 2x3") = 
-        ???
-    //   given Arbitrary[Q[Int,Int]] = Arbitrary(qGen(2,3))
+    def getIntInRange(x: Int, max:Int) =
+        if x != Int.MinValue then x.abs % max
+        else 0
 
-    //   forAll((q: Q[Int, Int], x: Int, y: Int) =>  {
-    //     update()
-    //   })
+    property("01 Null update on null table 2x3") = 
+        given Arbitrary[Q[Int,Int]] = Arbitrary(qGen(2,3))
+
+        forAll((q: Q[Int, Int], x: Int, y: Int) => {
+
+            val xm = getIntInRange(x, 2)
+            val ym = getIntInRange(y, 3)
+
+            val reward = q.get(xm).flatMap(state => state.get(ym))
+            reward.map(re => q == update(q, xm, ym)(re, 0.0)).getOrElse(false)
+        })
 
   end NullUpdatesSpec
 

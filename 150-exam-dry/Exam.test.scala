@@ -26,3 +26,6 @@ end ExamSpec
 
 object NullUpdatesSpecObj
   extends RL.NullUpdatesSpec(update = RL.update, "studentrl") {}
+
+object NullUpdatesSpecOwnImpl
+  extends RL.NullUpdatesSpec(update = RL.updateWithLens, "lens update")

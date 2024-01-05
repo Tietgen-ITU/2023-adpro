@@ -344,12 +344,18 @@ object RL:
         given Arbitrary[Q[Int,Int]] = Arbitrary(qGen(2,3))
 
         forAll((q: Q[Int, Int], x: Int, y: Int) => {
+            val xm = getIntInRange(x,2)
+            val ym = getIntInRange(y,3)
 
-            val xm = getIntInRange(x, 2)
-            val ym = getIntInRange(y, 3)
+            val result = for { 
+                state <- q.get(xm)
+                reward <- state.get(ym)
+                res = q == update(q, xm, ym)(reward, 0.0)
 
-            val reward = q.get(xm).flatMap(state => state.get(ym))
-            reward.map(re => q == update(q, xm, ym)(re, 0.0)).getOrElse(false)
+            } yield res
+
+            result.getOrElse(false)
+
         })
 
   end NullUpdatesSpec

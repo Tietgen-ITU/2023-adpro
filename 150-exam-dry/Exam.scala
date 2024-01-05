@@ -116,7 +116,10 @@ object Parsing:
       .map { (h,t) => h::t }
 
   lazy val longestLine: Parser[Int] = 
-    parser.flatMap(xs => succeed(xs.maxBy(x => x.length).length))
+    for {
+        xs <- parser
+        res = xs.maxBy(x => x.length).length
+    } yield res
 
 
   /* QUESTION 3 ######################################################
@@ -128,7 +131,14 @@ object Parsing:
    */
 
   val allLinesTheSame: Parser[Boolean] = 
-    parser.flatMap(xs => succeed(xs.headOption.map(h => xs.exists(x => x.length != h.length)).getOrElse(false)))
+    for {
+        xs <- parser
+        res = for {
+            h <- xs.headOption
+            ex = xs.exists(x => x.length != h.length)
+        } yield ex
+
+    } yield res.getOrElse(false)
 
 end Parsing
 

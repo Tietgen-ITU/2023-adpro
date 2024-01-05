@@ -322,9 +322,10 @@ object RL:
      * same as the input table.
      */
 
-    def getIntInRange(x: Int, max:Int) =
-        if x != Int.MinValue then x.abs % max
-        else 0
+    def getIntInRange(x: Int, max:Int) = x != Int.MinValue match
+        case true => x.abs % max
+        case false => 0
+    
 
     property("01 Null update on null table 2x3") = 
         given Arbitrary[Q[Int,Int]] = Arbitrary(qGen(2,3))

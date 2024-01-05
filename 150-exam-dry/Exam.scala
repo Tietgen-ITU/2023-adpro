@@ -133,12 +133,18 @@ object Parsing:
   val allLinesTheSame: Parser[Boolean] = 
     for {
         xs <- parser
-        res = for {
+        hasSameLength = for {
             h <- xs.headOption
             ex = xs.exists(x => x.length != h.length)
-        } yield ex
+        } yield !ex
 
-    } yield res.getOrElse(false)
+    } yield hasSameLength.getOrElse(true) /* I have set this to return true because 
+                                            the only case where the Option[Boolean] 
+                                            would return None is if the list 
+                                            is empty. So i assume that if the list
+                                            is empty then all rows(in this case 
+                                            there are none) are equal length
+                                            and should return true */
 
 end Parsing
 
@@ -355,7 +361,6 @@ object RL:
             } yield res
 
             result.getOrElse(false)
-
         })
 
   end NullUpdatesSpec

@@ -208,7 +208,10 @@ object Game:
    * Answering QUESTION 4 is not required to answer this one.
    */
   def game (player1: Strategy, player2: Strategy): Dist[Result] =
-    player1.flatMap(p1 => player2.map[Result](p2 => winner(p1, p2)))
+    for {
+        p1 <- player1
+        p2 <- player2
+    } yield winner(p1, p2)
 
 
 

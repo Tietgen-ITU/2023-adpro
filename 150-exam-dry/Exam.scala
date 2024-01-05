@@ -73,7 +73,7 @@ object Streaming:
 
 
   def fViaFold (l: LazyList[Int]): Int = 
-    ???
+    l.foldRight(0)((acc, x) => if x % 2 == 1 then acc + 1 else acc)
 
 end Streaming
 
@@ -116,7 +116,7 @@ object Parsing:
       .map { (h,t) => h::t }
 
   lazy val longestLine: Parser[Int] = 
-    ???
+    parser.flatMap(xs => succeed(xs.maxBy(x => x.length).length))
 
 
   /* QUESTION 3 ######################################################
@@ -128,7 +128,7 @@ object Parsing:
    */
 
   val allLinesTheSame: Parser[Boolean] = 
-    ???
+    parser.flatMap(xs => succeed(xs.headOption.map(h => xs.exists(x => x.length != h.length)).getOrElse(false)))
 
 end Parsing
 
@@ -181,10 +181,10 @@ object Game:
   type Strategy = Dist[Move]
 
   lazy val Alice: Strategy =
-    ???
+    Pigaro.uniform(Move.values*)
 
   lazy val Bob: Strategy =
-    ???
+    Pigaro.uniform(Move.Rock, Move.Paper)
 
 
 
@@ -198,7 +198,7 @@ object Game:
    * Answering QUESTION 4 is not required to answer this one.
    */
   def game (player1: Strategy, player2: Strategy): Dist[Result] =
-    ???
+    player1.flatMap(p1 => player2.map[Result](p2 => winner(p1, p2)))
 
 
 
@@ -215,7 +215,7 @@ object Game:
     = spire.random.rng.SecureJava.apply
 
   lazy val aliceFraction: Double = 
-    ???
+    game(Alice, Bob).sample(10000).pr(Player.P1)
 
 end Game
 
